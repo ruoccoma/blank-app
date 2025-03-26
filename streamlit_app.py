@@ -23,35 +23,36 @@ def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_per
             "Interest": round(interest, 2),
             "Total Paid": round(monthly_payment, 2),
             "Cumulative Interest": round(cumulative_interest, 2),
-            "Remaining Debt": round(remaining_debt, 2)
+            "Remaining Debt": round(max(remaining_debt, 0), 2)
         })
 
     return pd.DataFrame(data)
 
-def simulate_repayment_strategies(loan_amount, interest_rate, initial_repayment_period, extra_payment):
-    original_df = annuity_loan_calculator_df(loan_amount, interest_rate, initial_repayment_period)
-
-    # Strategy: Annual Extra Payments (Refinancing each year)
+def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, extra_payment):
     remaining_debt = loan_amount
     cumulative_interest = 0
     year = 0
     strategy_data = []
 
-    while remaining_debt > 0:
+    while remaining_debt > 0 and repayment_period > 0:
         year += 1
-        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, initial_repayment_period)
+        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
-        remaining_debt -= (yearly_principal + extra_payment)
+        total_yearly_payment = yearly_principal + extra_payment
+        remaining_debt -= total_yearly_payment
         cumulative_interest += yearly_interest
 
         strategy_data.append({
             'Year': year,
             'Yearly Interest': round(yearly_interest, 2),
             'Extra Payment': round(extra_payment, 2),
+            'Total Yearly Payment': round(total_yearly_payment, 2),
             'Remaining Debt': round(max(remaining_debt, 0), 2),
             'Cumulative Interest': round(cumulative_interest, 2)
         })
+
+        repayment_period -= 1
 
         if remaining_debt <= 0:
             break
@@ -71,17 +72,26 @@ with col1:
 df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
 strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment)
 
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten ekstra betaling)'))
-fig.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med ekstra betaling)'))
-fig.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumulative Interest',
+with col2:
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente / Cumulative Interest'))
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld / Remaining Debt'))
+    fig1.update_layout(title='Akkumulert rente og restgjeld / Cumulative Interest and Remaining Debt',
+                      xaxis_title='Måned / Month',
+                      yaxis_title='Beløp (kroner) / Amount (NOK)',
+                      hovermode="x unified",
+                      legend=dict(x=0.05, y=0.95))
+    st.plotly_chart(fig1, use_container_width=True)
+
+fig2 = go.Figure()
+fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten ekstra betaling)'))
+fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med ekstra betaling)'))
+fig2.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumulative Interest',
                   xaxis_title='Måned / Month',
                   yaxis_title='Beløp (kroner) / Amount (NOK)',
                   hovermode="x unified",
                   legend=dict(x=0.05, y=0.95))
-
-with col2:
-    st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig2, use_container_width=True)
 
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
