@@ -98,6 +98,19 @@ fig2.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumu
                   legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig2, use_container_width=True)
 
+# Monthly histogram
+st.subheader("Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown")
+fig3 = go.Figure()
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter / Interest'))
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag / Principal'))
+fig3.update_layout(barmode='stack',
+                   title='Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown',
+                   xaxis_title='Måned / Month',
+                   yaxis_title='Beløp (kroner) / Amount (NOK)',
+                   hovermode="x unified",
+                   legend=dict(x=0.05, y=0.95))
+st.plotly_chart(fig3, use_container_width=True)
+
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
 
