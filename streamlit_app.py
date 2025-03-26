@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
+import numpy_financial as npf
 
 def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period):
     monthly_interest = nominal_interest_rate / 100 / 12
@@ -28,14 +29,24 @@ def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_per
 
     return pd.DataFrame(data)
 
-def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, extra_payment):
+def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, extra_payment, adjust_years):
     remaining_debt = loan_amount
     cumulative_interest = 0
     year = 0
     strategy_data = []
 
+    # Initial monthly payment calculation
+    monthly_interest_rate = interest_rate / 100 / 12
+    initial_monthly_payment = npf.pmt(monthly_interest_rate, repayment_period * 12, -loan_amount)
+
     while remaining_debt > 0 and repayment_period > 0:
         year += 1
+
+        if adjust_years:
+            # Adjust repayment period to keep monthly payments similar
+            repayment_period = int(round(-npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt) / 12))
+            repayment_period = max(1, repayment_period)
+
         annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
@@ -46,7 +57,7 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
         remaining_debt -= extra_payment     # extra lump-sum repayment
         cumulative_interest += yearly_interest
 
-        repayment_period -= 1  # reduce repayment period by one year
+        repayment_period -= 1 if not adjust_years else 0
 
         strategy_data.append({
             'Year': year,
@@ -56,7 +67,8 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
             'Extra Payment': round(extra_payment, 2),
             'Total Yearly Payment': round(yearly_regular_payment + extra_payment, 2),
             'Remaining Debt': round(max(remaining_debt, 0), 2),
-            'Cumulative Interest': round(cumulative_interest, 2)
+            'Cumulative Interest': round(cumulative_interest, 2),
+            'Remaining Years': repayment_period
         })
 
         if remaining_debt <= 0:
@@ -64,6 +76,7 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
 
     return pd.DataFrame(strategy_data)
 
+# Streamlit app layout
 st.title("Boliglånkalkulator / Mortgage Loan Calculator")
 
 col1, col2 = st.columns([1, 2])
@@ -73,9 +86,11 @@ with col1:
     nominal_interest_rate = st.number_input("Nominell rente (%) / Nominal interest rate (%):", min_value=0.0, value=3.5, step=0.1)
     repayment_period = st.number_input("Nedbetalingstid (år) / Repayment period (years):", min_value=1, max_value=50, value=25, step=1)
     extra_payment = st.number_input("Årlig ekstra betaling (kroner) / Annual extra payment (NOK):", min_value=0.0, value=50000.0, step=5000.0)
+    adjust_years = st.checkbox("Juster antall år for å opprettholde månedlig betaling / Adjust years to maintain monthly payment", value=False)
 
+# Dataframes recalculated explicitly
 df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
-strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment)
+strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, adjust_years)
 
 with col2:
     fig1 = go.Figure()
@@ -88,36 +103,13 @@ with col2:
                       legend=dict(x=0.05, y=0.95))
     st.plotly_chart(fig1, use_container_width=True)
 
-fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten ekstra betaling)'))
-fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med ekstra betaling)'))
-fig2.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumulative Interest',
-                  xaxis_title='Måned / Month',
-                  yaxis_title='Beløp (kroner) / Amount (NOK)',
-                  hovermode="x unified",
-                  legend=dict(x=0.05, y=0.95))
-st.plotly_chart(fig2, use_container_width=True)
-
-# Monthly histogram
-st.subheader("Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown")
-fig3 = go.Figure()
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter / Interest'))
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag / Principal'))
-fig3.update_layout(barmode='stack',
-                   title='Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown',
-                   xaxis_title='Måned / Month',
-                   yaxis_title='Beløp (kroner) / Amount (NOK)',
-                   hovermode="x unified",
-                   legend=dict(x=0.05, y=0.95))
-st.plotly_chart(fig3, use_container_width=True)
-
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
 
-#csv = strategy_df.to_csv(index=False).encode('utf-8')
-#st.download_button(
-#    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
-#    data=csv,
-#    file_name='strategy_payment_schedule.csv',
-#    mime='text/csv',
-#)
+csv = strategy_df.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
+    data=csv,
+    file_name='strategy_payment_schedule.csv',
+    mime='text/csv',
+)
