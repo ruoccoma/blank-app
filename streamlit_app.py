@@ -102,13 +102,11 @@ fig2.update_layout(title='Sammenligning av akkumulert rente',
                   legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig2, use_container_width=True)
 
-# Aggregate per year
-df_yearly = df.groupby("Year")[['Interest', 'Principal Payment']].sum().reset_index()
-
+# Aggregate per year based on strategy_df (not df)
 fig3 = go.Figure()
-fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Interest'], name='Renter'))
-fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Principal Payment'], name='Avdrag'))
-fig3.update_layout(barmode='stack', title='Årlig fordeling renter og avdrag',
+fig3.add_trace(go.Bar(x=strategy_df['Year'], y=strategy_df['Yearly Interest'], name='Renter'))
+fig3.add_trace(go.Bar(x=strategy_df['Year'], y=strategy_df['Regular Principal Payment'], name='Avdrag'))
+fig3.update_layout(barmode='stack', title='Årlig fordeling renter og avdrag (strategi)',
                    xaxis_title='År', yaxis_title='Beløp (NOK)', hovermode="x unified",
                    legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig3, use_container_width=True)
