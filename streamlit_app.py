@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 
 def annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period):
@@ -46,7 +45,8 @@ fig.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', na
 fig.update_layout(title='Utvikling av akkumulert rente og restgjeld over tid / Cumulative Interest and Debt Development Over Time',
                   xaxis_title='Måned / Month',
                   yaxis_title='Beløp (kroner) / Amount (NOK)',
-                  hovermode="x unified")
+                  hovermode="x unified",
+                  legend=dict(x=0.05, y=0.95))
 
 with col2:
     st.plotly_chart(fig, use_container_width=True)
@@ -62,7 +62,8 @@ fig2.update_layout(barmode='stack',
                    title='Fordeling av renter og avdrag måned for måned / Interest and Principal Distribution Month-by-Month',
                    xaxis_title='Måned / Month',
                    yaxis_title='Beløp (kroner) / Amount (NOK)',
-                   hovermode="x unified")
+                   hovermode="x unified",
+                   legend=dict(x=0.05, y=0.95))
 
 st.plotly_chart(fig2, use_container_width=True)
 
