@@ -38,10 +38,13 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
     monthly_interest_rate = interest_rate / 100 / 12
     initial_monthly_payment = npf.pmt(monthly_interest_rate, repayment_period * 12, -loan_amount)
 
-    while remaining_debt > 0:
+    periods_remaining = repayment_period * 12
+
+    while remaining_debt > 0 and periods_remaining > 0:
         year += 1
 
-        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
+        # Calculate this year's payments based on current remaining debt and repayment period
+        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, periods_remaining // 12)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
         monthly_payment = annual_df['Total Paid'].iloc[0]
@@ -50,12 +53,11 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
         remaining_debt -= (yearly_principal + extra_payment)
         cumulative_interest += yearly_interest
 
+        # Dynamically adjust remaining periods to match initial monthly payment
         if adjust_years and remaining_debt > 0:
-            # Precisely recalculate repayment period to match initial monthly payment
-            periods_remaining = -npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt)
-            repayment_period = max(1, periods_remaining / 12)
+            periods_remaining = np.ceil(-npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt))
         else:
-            repayment_period -= 1
+            periods_remaining -= 12
 
         strategy_data.append({
             'Year': year,
@@ -66,13 +68,14 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
             'Total Yearly Payment': round(yearly_regular_payment + extra_payment, 2),
             'Remaining Debt': round(max(remaining_debt, 0), 2),
             'Cumulative Interest': round(cumulative_interest, 2),
-            'Remaining Years': round(repayment_period, 2)
+            'Remaining Years': round(periods_remaining / 12, 2)
         })
 
         if remaining_debt <= 0:
             break
 
     return pd.DataFrame(strategy_data)
+
 
 st.title("Boliglånkalkulator / Mortgage Loan Calculator")
 
