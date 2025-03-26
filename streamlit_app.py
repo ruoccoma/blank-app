@@ -81,37 +81,37 @@ with col1:
     extra_payment = st.number_input("Årlig ekstra betaling (kroner) / Annual extra payment (NOK):", min_value=0.0, value=50000.0, step=5000.0)
     annual_years_reduction = st.number_input("Årlig reduksjon i nedbetalingstid (år) / Annual repayment period reduction (years):", min_value=0, max_value=repayment_period-1, value=1, step=1)
 
-if st.button("Beregn / Calculate"):
-    df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
-    strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, annual_years_reduction)
+# Automatically trigger calculations
+df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
+strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, annual_years_reduction)
 
-    with col2:
-        fig1 = go.Figure()
-        fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente'))
-        fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld'))
-        fig1.update_layout(title='Akkumulert rente og restgjeld',
-                          xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
-                          legend=dict(x=0.05, y=0.95))
-        st.plotly_chart(fig1, use_container_width=True)
-
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Uten ekstra betaling'))
-    fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Med ekstra betaling'))
-    fig2.update_layout(title='Sammenligning av akkumulert rente',
+with col2:
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente'))
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld'))
+    fig1.update_layout(title='Akkumulert rente og restgjeld',
                       xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
                       legend=dict(x=0.05, y=0.95))
-    st.plotly_chart(fig2, use_container_width=True)
+    st.plotly_chart(fig1, use_container_width=True)
 
-    # Aggregate per year
-    df_yearly = df.groupby("Year")[['Interest', 'Principal Payment']].sum().reset_index()
+fig2 = go.Figure()
+fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Uten ekstra betaling'))
+fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Med ekstra betaling'))
+fig2.update_layout(title='Sammenligning av akkumulert rente',
+                  xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+                  legend=dict(x=0.05, y=0.95))
+st.plotly_chart(fig2, use_container_width=True)
 
-    fig3 = go.Figure()
-    fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Interest'], name='Renter'))
-    fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Principal Payment'], name='Avdrag'))
-    fig3.update_layout(barmode='stack', title='Årlig fordeling renter og avdrag',
-                       xaxis_title='År', yaxis_title='Beløp (NOK)', hovermode="x unified",
-                       legend=dict(x=0.05, y=0.95))
-    st.plotly_chart(fig3, use_container_width=True)
+# Aggregate per year
+df_yearly = df.groupby("Year")[['Interest', 'Principal Payment']].sum().reset_index()
 
-    st.subheader("Detaljert betalingsplan")
-    st.dataframe(strategy_df)
+fig3 = go.Figure()
+fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Interest'], name='Renter'))
+fig3.add_trace(go.Bar(x=df_yearly['Year'], y=df_yearly['Principal Payment'], name='Avdrag'))
+fig3.update_layout(barmode='stack', title='Årlig fordeling renter og avdrag',
+                   xaxis_title='År', yaxis_title='Beløp (NOK)', hovermode="x unified",
+                   legend=dict(x=0.05, y=0.95))
+st.plotly_chart(fig3, use_container_width=True)
+
+st.subheader("Detaljert betalingsplan")
+st.dataframe(strategy_df)
