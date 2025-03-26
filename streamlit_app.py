@@ -71,10 +71,10 @@ st.plotly_chart(fig2, use_container_width=True)
 st.subheader("Betalingsplan / Payment Schedule")
 st.dataframe(df)
 
-csv = df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Last ned betalingsplan som CSV / Download payment schedule as CSV",
-    data=csv,
-    file_name='loan_schedule.csv',
-    mime='text/csv',
-)
+#csv = df.to_csv(index=False).encode('utf-8')
+#st.download_button(
+#    label="Last ned betalingsplan som CSV / Download payment schedule as CSV",
+#    data=csv,
+#    file_name='loan_schedule.csv',
+#    mime='text/csv',
+#)
