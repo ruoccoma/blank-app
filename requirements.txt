@@ -2,3 +2,4 @@ streamlit
 matplotlib
 plotly
 numpy_financial
+numpy
