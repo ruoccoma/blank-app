@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 
 def annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period):
     monthly_interest = interest_rate / 100 / 12
@@ -38,28 +39,32 @@ with col1:
 
 df = annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period)
 
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(df['Month'], df['Cumulative Interest'], label='Akkumulert rente / Cumulative Interest')
-ax.plot(df['Month'], df['Remaining Debt'], label='Restgjeld / Remaining Debt')
-ax.set_xlabel('Måned / Month')
-ax.set_ylabel('Beløp (kroner) / Amount (NOK)')
-ax.set_title('Utvikling av akkumulert rente og restgjeld over tid / Cumulative Interest and Debt Development Over Time')
-ax.legend()
-ax.grid(True)
+# Interactive Plotly Line Graph
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente / Cumulative Interest'))
+fig.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld / Remaining Debt'))
+fig.update_layout(title='Utvikling av akkumulert rente og restgjeld over tid / Cumulative Interest and Debt Development Over Time',
+                  xaxis_title='Måned / Month',
+                  yaxis_title='Beløp (kroner) / Amount (NOK)',
+                  hovermode="x unified")
 
 with col2:
-    st.pyplot(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Fordeling av renter og avdrag per måned / Monthly Interest and Principal Breakdown")
-fig2, ax2 = plt.subplots(figsize=(10, 6))
-ax2.bar(df['Month'], df['Interest'], label='Renter / Interest', alpha=0.7)
-ax2.bar(df['Month'], df['Principal Payment'], bottom=df['Interest'], label='Avdrag / Principal', alpha=0.7)
-ax2.set_xlabel('Måned / Month')
-ax2.set_ylabel('Beløp (kroner) / Amount (NOK)')
-ax2.set_title('Fordeling av renter og avdrag måned for måned / Interest and Principal Distribution Month-by-Month')
-ax2.legend()
-ax2.grid(True)
-st.pyplot(fig2)
+
+# Interactive Plotly Histogram
+fig2 = go.Figure()
+fig2.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter / Interest'))
+fig2.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag / Principal'))
+
+fig2.update_layout(barmode='stack',
+                   title='Fordeling av renter og avdrag måned for måned / Interest and Principal Distribution Month-by-Month',
+                   xaxis_title='Måned / Month',
+                   yaxis_title='Beløp (kroner) / Amount (NOK)',
+                   hovermode="x unified")
+
+st.plotly_chart(fig2, use_container_width=True)
 
 st.subheader("Betalingsplan / Payment Schedule")
 st.dataframe(df)
