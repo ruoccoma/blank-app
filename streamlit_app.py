@@ -82,25 +82,28 @@ strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, 
 
 with col2:
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente / Cumulative Interest'))
-    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld / Remaining Debt'))
-    fig1.update_layout(title='Akkumulert rente og restgjeld / Cumulative Interest and Remaining Debt',
-                      xaxis_title='Måned / Month', yaxis_title='Beløp (kroner) / Amount (NOK)', hovermode="x unified")
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente'))
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld'))
+    fig1.update_layout(title='Akkumulert rente og restgjeld',
+                      xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+                      legend=dict(x=0.05, y=0.95))
     st.plotly_chart(fig1, use_container_width=True)
 
 fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten ekstra betaling)'))
-fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med ekstra betaling)'))
-fig2.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumulative Interest',
-                  xaxis_title='Måned / Month', yaxis_title='Beløp (kroner) / Amount (NOK)', hovermode="x unified")
+fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Uten ekstra betaling'))
+fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Med ekstra betaling'))
+fig2.update_layout(title='Sammenligning av akkumulert rente',
+                  xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+                  legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig2, use_container_width=True)
 
 fig3 = go.Figure()
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter / Interest'))
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag / Principal'))
-fig3.update_layout(barmode='stack', title='Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown',
-                   xaxis_title='Måned / Month', yaxis_title='Beløp (kroner) / Amount (NOK)', hovermode="x unified")
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter'))
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag'))
+fig3.update_layout(barmode='stack', title='Månedlig fordeling renter og avdrag',
+                   xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+                   legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig3, use_container_width=True)
 
-st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
+st.subheader("Detaljert betalingsplan")
 st.dataframe(strategy_df)
