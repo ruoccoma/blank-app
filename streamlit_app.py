@@ -21,6 +21,7 @@ def annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period):
             "Month": month,
             "Principal Payment": round(principal_payment, 2),
             "Interest": round(interest, 2),
+            "Total Paid": round(monthly_payment, 2),
             "Cumulative Interest": round(cumulative_interest, 2),
             "Remaining Debt": round(remaining_debt, 2)
         })
