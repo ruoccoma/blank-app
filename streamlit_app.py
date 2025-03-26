@@ -35,17 +35,16 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
     year = 0
     strategy_data = []
 
-    # Initial monthly payment calculation
     monthly_interest_rate = interest_rate / 100 / 12
     initial_monthly_payment = npf.pmt(monthly_interest_rate, repayment_period * 12, -loan_amount)
 
-    while remaining_debt > 0 and repayment_period > 0:
+    while remaining_debt > 0:
         year += 1
 
         if adjust_years:
-            # Adjust repayment period to keep monthly payments similar
-            repayment_period = int(round(-npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt) / 12))
-            repayment_period = max(1, repayment_period)
+            # Adjust repayment period to maintain monthly payment similar to initial year
+            periods_remaining = -npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt)
+            repayment_period = max(1, int(round(periods_remaining / 12)))
 
         annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
@@ -56,8 +55,6 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
         remaining_debt -= yearly_principal  # regular repayment
         remaining_debt -= extra_payment     # extra lump-sum repayment
         cumulative_interest += yearly_interest
-
-        repayment_period -= 1 if not adjust_years else 0
 
         strategy_data.append({
             'Year': year,
