@@ -88,7 +88,8 @@ strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, 
 
 with col2:
     fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente'))
+    fig1.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten strategi)'))
+    fig1.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med strategi)'))
     fig1.add_trace(go.Scatter(x=df['Month'], y=df['Remaining Debt'], mode='lines', name='Restgjeld'))
     fig1.update_layout(title='Akkumulert rente og restgjeld',
                       xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
