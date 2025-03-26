@@ -103,10 +103,10 @@ with col2:
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
 
-csv = strategy_df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
-    data=csv,
-    file_name='strategy_payment_schedule.csv',
-    mime='text/csv',
-)
+#csv = strategy_df.to_csv(index=False).encode('utf-8')
+#st.download_button(
+#    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
+#    data=csv,
+#    file_name='strategy_payment_schedule.csv',
+#    mime='text/csv',
+#)
