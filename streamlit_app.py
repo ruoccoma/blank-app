@@ -50,6 +50,17 @@ ax.grid(True)
 with col2:
     st.pyplot(fig)
 
+st.subheader("Fordeling av renter og avdrag per måned / Monthly Interest and Principal Breakdown")
+fig2, ax2 = plt.subplots(figsize=(10, 6))
+ax2.bar(df['Month'], df['Interest'], label='Renter / Interest', alpha=0.7)
+ax2.bar(df['Month'], df['Principal Payment'], bottom=df['Interest'], label='Avdrag / Principal', alpha=0.7)
+ax2.set_xlabel('Måned / Month')
+ax2.set_ylabel('Beløp (kroner) / Amount (NOK)')
+ax2.set_title('Fordeling av renter og avdrag måned for måned / Interest and Principal Distribution Month-by-Month')
+ax2.legend()
+ax2.grid(True)
+st.pyplot(fig2)
+
 st.subheader("Betalingsplan / Payment Schedule")
 st.dataframe(df)
 
