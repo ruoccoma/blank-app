@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 import numpy_financial as npf
 
 
+@st.cache_data
 def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period):
     monthly_interest = nominal_interest_rate / 100 / 12
     total_payments = repayment_period * 12
