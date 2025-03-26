@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy_financial as npf
+import numpy as np
 
 def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period):
     monthly_interest = nominal_interest_rate / 100 / 12
