@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import numpy_financial as npf
-import numpy as np
 
 def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period):
     monthly_interest = nominal_interest_rate / 100 / 12
@@ -30,35 +29,25 @@ def annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_per
 
     return pd.DataFrame(data)
 
-def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, extra_payment, adjust_years):
+def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, extra_payment, annual_years_reduction):
     remaining_debt = loan_amount
     cumulative_interest = 0
     year = 0
     strategy_data = []
 
-    monthly_interest_rate = interest_rate / 100 / 12
-    initial_monthly_payment = npf.pmt(monthly_interest_rate, repayment_period * 12, -loan_amount)
-
-    periods_remaining = repayment_period * 12  # explicitly in months as integer
-
-    while remaining_debt > 0 and periods_remaining > 0:
+    while remaining_debt > 0 and repayment_period > 0:
         year += 1
 
-        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, int(periods_remaining // 12))
-        monthly_payment = annual_df['Total Paid'].iloc[0]
-
+        annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
+        monthly_payment = annual_df['Total Paid'].iloc[0]
         yearly_regular_payment = yearly_interest + yearly_principal
 
         remaining_debt -= (yearly_principal + extra_payment)
         cumulative_interest += yearly_interest
 
-        if adjust_years and remaining_debt > 0:
-            # Precisely recalculate repayment period (months) to match initial monthly payment
-            periods_remaining = int(np.ceil(-npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt)))
-        else:
-            periods_remaining -= 12  # reduce one year (12 months)
+        repayment_period = max(1, repayment_period - annual_years_reduction)
 
         strategy_data.append({
             'Year': year,
@@ -69,14 +58,13 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
             'Total Yearly Payment': round(yearly_regular_payment + extra_payment, 2),
             'Remaining Debt': round(max(remaining_debt, 0), 2),
             'Cumulative Interest': round(cumulative_interest, 2),
-            'Remaining Years': round(periods_remaining / 12, 2)
+            'Remaining Years': repayment_period
         })
 
         if remaining_debt <= 0:
             break
 
     return pd.DataFrame(strategy_data)
-
 
 st.title("Boliglånkalkulator / Mortgage Loan Calculator")
 
@@ -87,10 +75,10 @@ with col1:
     nominal_interest_rate = st.number_input("Nominell rente (%) / Nominal interest rate (%):", min_value=0.0, value=3.5, step=0.1)
     repayment_period = st.number_input("Nedbetalingstid (år) / Repayment period (years):", min_value=1, max_value=50, value=25, step=1)
     extra_payment = st.number_input("Årlig ekstra betaling (kroner) / Annual extra payment (NOK):", min_value=0.0, value=50000.0, step=5000.0)
-    adjust_years = st.checkbox("Juster antall år for å opprettholde månedlig betaling / Adjust years to maintain monthly payment", value=False)
+    annual_years_reduction = st.number_input("Antall år å redusere hvert år / Number of years to reduce annually:", min_value=0, max_value=repayment_period-1, value=1, step=1)
 
 df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
-strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, adjust_years)
+strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, annual_years_reduction)
 
 with col2:
     fig1 = go.Figure()
