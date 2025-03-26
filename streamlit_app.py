@@ -39,6 +39,7 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
         annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
+        monthly_payment = annual_df['Total Paid'].iloc[0]
         yearly_regular_payment = yearly_interest + yearly_principal
 
         remaining_debt -= yearly_principal  # regular repayment
@@ -49,6 +50,7 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
 
         strategy_data.append({
             'Year': year,
+            'Monthly Payment': round(monthly_payment, 2),
             'Yearly Interest': round(yearly_interest, 2),
             'Regular Principal Payment': round(yearly_principal, 2),
             'Extra Payment': round(extra_payment, 2),
