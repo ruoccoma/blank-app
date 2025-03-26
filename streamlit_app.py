@@ -41,20 +41,20 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
     while remaining_debt > 0:
         year += 1
 
-        if adjust_years:
-            # Adjust repayment period to maintain monthly payment similar to initial year
-            periods_remaining = -npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt)
-            repayment_period = max(1, int(round(periods_remaining / 12)))
-
         annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
         monthly_payment = annual_df['Total Paid'].iloc[0]
         yearly_regular_payment = yearly_interest + yearly_principal
 
-        remaining_debt -= yearly_principal  # regular repayment
-        remaining_debt -= extra_payment     # extra lump-sum repayment
+        remaining_debt -= yearly_principal + extra_payment
         cumulative_interest += yearly_interest
+
+        if adjust_years and remaining_debt > 0:
+            # Recalculate repayment period to keep monthly payment similar to initial year
+            repayment_period = max(1, int(round(-npf.nper(monthly_interest_rate, initial_monthly_payment, remaining_debt) / 12)))
+        else:
+            repayment_period -= 1
 
         strategy_data.append({
             'Year': year,
@@ -73,7 +73,6 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
 
     return pd.DataFrame(strategy_data)
 
-# Streamlit app layout
 st.title("Boliglånkalkulator / Mortgage Loan Calculator")
 
 col1, col2 = st.columns([1, 2])
@@ -85,7 +84,6 @@ with col1:
     extra_payment = st.number_input("Årlig ekstra betaling (kroner) / Annual extra payment (NOK):", min_value=0.0, value=50000.0, step=5000.0)
     adjust_years = st.checkbox("Juster antall år for å opprettholde månedlig betaling / Adjust years to maintain monthly payment", value=False)
 
-# Dataframes recalculated explicitly
 df = annuity_loan_calculator_df(loan_amount, nominal_interest_rate, repayment_period)
 strategy_df = simulate_repayment_strategies(loan_amount, nominal_interest_rate, repayment_period, extra_payment, adjust_years)
 
@@ -96,9 +94,25 @@ with col2:
     fig1.update_layout(title='Akkumulert rente og restgjeld / Cumulative Interest and Remaining Debt',
                       xaxis_title='Måned / Month',
                       yaxis_title='Beløp (kroner) / Amount (NOK)',
-                      hovermode="x unified",
-                      legend=dict(x=0.05, y=0.95))
+                      hovermode="x unified")
     st.plotly_chart(fig1, use_container_width=True)
+
+fig2 = go.Figure()
+fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Akkumulert rente (uten ekstra betaling)'))
+fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Akkumulert rente (med ekstra betaling)'))
+fig2.update_layout(title='Sammenligning av akkumulert rente / Comparison of Cumulative Interest',
+                  xaxis_title='Måned / Month', yaxis_title='Beløp (kroner) / Amount (NOK)',
+                  hovermode="x unified")
+st.plotly_chart(fig2, use_container_width=True)
+
+fig3 = go.Figure()
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter / Interest'))
+fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag / Principal'))
+fig3.update_layout(barmode='stack',
+                   title='Månedlig fordeling renter og avdrag / Monthly Interest and Principal Breakdown',
+                   xaxis_title='Måned / Month', yaxis_title='Beløp (kroner) / Amount (NOK)',
+                   hovermode="x unified")
+st.plotly_chart(fig3, use_container_width=True)
 
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
