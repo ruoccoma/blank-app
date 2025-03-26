@@ -98,10 +98,10 @@ fig2.update_layout(title='Sammenligning av akkumulert rente',
 st.plotly_chart(fig2, use_container_width=True)
 
 fig3 = go.Figure()
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Interest'], name='Renter'))
-fig3.add_trace(go.Bar(x=df['Month'], y=df['Principal Payment'], name='Avdrag'))
-fig3.update_layout(barmode='stack', title='Månedlig fordeling renter og avdrag',
-                   xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+fig3.add_trace(go.Bar(x=strategy_df['Year'], y=strategy_df['Yearly Interest'], name='Renter'))
+fig3.add_trace(go.Bar(x=strategy_df['Year'], y=strategy_df['Regular Principal Payment'], name='Avdrag'))
+fig3.update_layout(barmode='stack', title='Årlig fordeling renter og avdrag',
+                   xaxis_title='År', yaxis_title='Beløp (NOK)', hovermode="x unified",
                    legend=dict(x=0.05, y=0.95))
 st.plotly_chart(fig3, use_container_width=True)
 
