@@ -29,31 +29,34 @@ def annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period):
 
 st.title("Boliglånkalkulator / Mortgage Loan Calculator")
 
-loan_amount = st.number_input("Lånebeløp (kroner) / Loan amount (NOK):", min_value=0.0, value=2500000.0, step=10000.0)
-interest_rate = st.number_input("Årlig rente (%) / Annual interest rate (%):", min_value=0.0, value=3.5, step=0.1)
-repayment_period = st.number_input("Nedbetalingstid (år) / Repayment period (years):", min_value=1, max_value=50, value=25, step=1)
+col1, col2 = st.columns([1, 2])
 
-# Automatically update graph and data based on input changes
-df = annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period)
+with col1:
+    loan_amount = st.number_input("Lånebeløp (kroner) / Loan amount (NOK):", min_value=0.0, value=2500000.0, step=10000.0)
+    interest_rate = st.number_input("Årlig rente (%) / Annual interest rate (%):", min_value=0.0, value=3.5, step=0.1)
+    repayment_period = st.number_input("Nedbetalingstid (år) / Repayment period (years):", min_value=1, max_value=50, value=25, step=1)
 
-st.subheader("Betalingsplan / Payment Schedule")
-st.dataframe(df)
+    df = annuity_loan_calculator_df(loan_amount, interest_rate, repayment_period)
 
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(df['Month'], df['Cumulative Interest'], label='Akkumulert rente / Cumulative Interest')
-ax.plot(df['Month'], df['Remaining Debt'], label='Restgjeld / Remaining Debt')
-ax.set_xlabel('Måned / Month')
-ax.set_ylabel('Beløp (kroner) / Amount (NOK)')
-ax.set_title('Utvikling av akkumulert rente og restgjeld over tid / Cumulative Interest and Debt Development Over Time')
-ax.legend()
-ax.grid(True)
+    st.subheader("Betalingsplan / Payment Schedule")
+    st.dataframe(df)
 
-st.pyplot(fig)
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Last ned betalingsplan som CSV / Download payment schedule as CSV",
+        data=csv,
+        file_name='loan_schedule.csv',
+        mime='text/csv',
+    )
 
-csv = df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Last ned betalingsplan som CSV / Download payment schedule as CSV",
-    data=csv,
-    file_name='loan_schedule.csv',
-    mime='text/csv',
-)
+with col2:
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(df['Month'], df['Cumulative Interest'], label='Akkumulert rente / Cumulative Interest')
+    ax.plot(df['Month'], df['Remaining Debt'], label='Restgjeld / Remaining Debt')
+    ax.set_xlabel('Måned / Month')
+    ax.set_ylabel('Beløp (kroner) / Amount (NOK)')
+    ax.set_title('Utvikling av akkumulert rente og restgjeld over tid / Cumulative Interest and Debt Development Over Time')
+    ax.legend()
+    ax.grid(True)
+
+    st.pyplot(fig)
