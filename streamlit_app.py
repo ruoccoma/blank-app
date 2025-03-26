@@ -39,20 +39,23 @@ def simulate_repayment_strategies(loan_amount, interest_rate, repayment_period, 
         annual_df = annuity_loan_calculator_df(remaining_debt, interest_rate, repayment_period)
         yearly_interest = annual_df['Interest'].iloc[:12].sum()
         yearly_principal = annual_df['Principal Payment'].iloc[:12].sum()
-        total_yearly_payment = yearly_principal + extra_payment
-        remaining_debt -= total_yearly_payment
+        yearly_regular_payment = yearly_interest + yearly_principal
+
+        remaining_debt -= yearly_principal  # regular repayment
+        remaining_debt -= extra_payment     # extra lump-sum repayment
         cumulative_interest += yearly_interest
+
+        repayment_period -= 1  # reduce repayment period by one year
 
         strategy_data.append({
             'Year': year,
             'Yearly Interest': round(yearly_interest, 2),
+            'Regular Principal Payment': round(yearly_principal, 2),
             'Extra Payment': round(extra_payment, 2),
-            'Total Yearly Payment': round(total_yearly_payment, 2),
+            'Total Yearly Payment': round(yearly_regular_payment + extra_payment, 2),
             'Remaining Debt': round(max(remaining_debt, 0), 2),
             'Cumulative Interest': round(cumulative_interest, 2)
         })
-
-        repayment_period -= 1
 
         if remaining_debt <= 0:
             break
@@ -96,10 +99,10 @@ st.plotly_chart(fig2, use_container_width=True)
 st.subheader("Detaljert betalingsplan / Detailed Payment Schedule")
 st.dataframe(strategy_df)
 
-csv = strategy_df.to_csv(index=False).encode('utf-8')
-st.download_button(
-    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
-    data=csv,
-    file_name='strategy_payment_schedule.csv',
-    mime='text/csv',
-)
+#csv = strategy_df.to_csv(index=False).encode('utf-8')
+#st.download_button(
+#    label="Last ned strategi betalingsplan som CSV / Download strategy payment schedule as CSV",
+#    data=csv,
+#    file_name='strategy_payment_schedule.csv',
+#    mime='text/csv',
+#)
