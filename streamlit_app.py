@@ -96,13 +96,13 @@ with col2:
                       legend=dict(x=0.05, y=0.95))
     st.plotly_chart(fig1, use_container_width=True)
 
-fig2 = go.Figure()
-fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Uten ekstra betaling'))
-fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Med ekstra betaling'))
-fig2.update_layout(title='Sammenligning av akkumulert rente',
-                  xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
-                  legend=dict(x=0.05, y=0.95))
-st.plotly_chart(fig2, use_container_width=True)
+#fig2 = go.Figure()
+#fig2.add_trace(go.Scatter(x=df['Month'], y=df['Cumulative Interest'], mode='lines', name='Uten ekstra betaling'))
+#fig2.add_trace(go.Scatter(x=strategy_df['Year']*12, y=strategy_df['Cumulative Interest'], mode='lines', name='Med ekstra betaling'))
+#fig2.update_layout(title='Sammenligning av akkumulert rente',
+#                  xaxis_title='Måned', yaxis_title='Beløp (NOK)', hovermode="x unified",
+#                  legend=dict(x=0.05, y=0.95))
+#st.plotly_chart(fig2, use_container_width=True)
 
 # Aggregate per year based on strategy_df (not df)
 fig3 = go.Figure()
